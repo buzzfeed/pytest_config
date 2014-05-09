@@ -1,0 +1,20 @@
+# This is just a template for a `.coveragerc` configuration file and it's not
+# meant to match the architecture of any specific project.
+# Feel free to add, edit or remove anything you consider necessary for your
+# project, starting from this comment.
+[run]
+branch = True
+source = my_app/
+omit =
+# Add here expressions that match files that you don't want to run coverage for.
+    tests/*
+
+[report]
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    def __str__
+    def __unicode__
+precision = 2
+show_missing = True
+title = My Project Coverage Report
