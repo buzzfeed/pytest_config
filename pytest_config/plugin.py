@@ -2,30 +2,43 @@
 import os
 import pytest
 
-PROJECT_ROOT = os.environ.get('PWD')
 
 
 def pytest_addoption(parser):
-    group = parser.getgroup('BuzzFeed', 'BuzzFeed specific configs')
+    group = parser.getgroup('Caliendo', 'Caliendo specific configs')
     group.addoption('--caliendo',
                     action='store_true', dest='use_caliendo', default=False,
                     help='Use caliendo with your tests.')
     group.addoption('--caliendo-prefix',
                     action='store', dest='caliendo_prefix', default=None,
-                    help='Set the destination for caliendo files. Defaults to $PWD/caliendo')
+                    help='Set the destination for caliendo files.'
+                    'Defaults to $PWD/caliendo')
     group.addoption('--caliendo-purge',
                     action='store_true',dest='purge_caliendo', default=False,
                     help='Set CALIENDO_PURGE=True to clean unused caliendo files')
+    group.addoption('--caliendo-prompt',
+                    action='store_true', dest='caliendo_prompt', default=False,
+                    help='Set CALIENDO_PROMPT=True to enable the caliendo prompt')
 
 
 def pytest_configure(config):
+    PROJECT_ROOT = os.environ.get('PWD')
+
     if config.getvalue('use_caliendo'):
         # Add caliendo cache variables
         os.environ.setdefault('USE_CALIENDO', 'True')
-        CALIENDO_CACHE_PREFIX = config.getvalue('caliendo_prefix')
-        if not CALIENDO_CACHE_PREFIX:
-            CALIENDO_CACHE_PREFIX = os.path.join(PROJECT_ROOT, 'caliendo')
-        os.environ.setdefault('CALIENDO_CACHE_PREFIX', CALIENDO_CACHE_PREFIX)
+
+        caliendo_cache_prefix = config.getvalue('caliendo_prefix')
+        if not caliendo_cache_prefix:
+            caliendo_cache_prefix = os.path.join(PROJECT_ROOT, 'caliendo')
+        caliendo_cache_prefix = os.path.abspath(caliendo_cache_prefix)
+        os.environ.setdefault('CALIENDO_CACHE_PREFIX', caliendo_cache_prefix)
+
+        if config.getvalue('purge_caliendo'):
+            os.environ['PURGE_CALIENDO'] = 'True'
+
+        if config.getvalue('caliendo_prompt'):
+            os.environ['CALIENDO_PROMPT'] = 'True'
 
     # Add line arguments
     config.addinivalue_line('markers', 'unit: Mark a test as a unit test. Useful for running only unit tests.')
