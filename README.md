@@ -4,17 +4,51 @@ Base configurations and utilities for developing your Python project test suite.
 
 ### Installation
 
-    pip install git+git://github.com/buzzfeed/pytest_config.git@0.0.1#egg=pytest_config==0.0.1
+    pip install git+git://github.com/buzzfeed/pytest_config.git@0.0.2#egg=pytest_config==0.0.2
 
-**NOTE**: Please install `pytest_config` from you project root,
-as it depends on the current directory to copy some files.
+This will install:
 
-This will install the `py.test` plugin and make available a simple django app
-that extends the `django-admin.py startapp` (under development).
-Also, `pytest.ini` and `.coveragerc` files will be copied to your current
-directory. These files are templates that you can modify as needed.
+- the `py.test` plugin
+- a simple django app that extends the `django-admin.py startapp` (under development).
+- a `pytest_config.init` command to initialize new config files
+- a `pytest_config.update` command to interactively update your config files
+against the lates default values.
 
 ### Features
+
+#### Config files management
+
+###### pytest_config.init
+
+This command will copy all the configuration files needed to easily configure
+`py.test` and `coverage`. Beware of this command as **it will simply replace any
+existing config files in you current directory**.
+
+###### pytest_config.update
+
+This command will read the default configuration files and your customized
+configuration files. If any of the options in you custom configuration differs
+from the defaults, you will be prompted if you want to keep the current one.
+If you decline, the default will be saved to your local configuration.
+
+The two previous command share their interface, which is as follows:
+
+Print the help page.
+
+    $ pytest_config.update -h
+
+Silence the process so that you are prompted about anything.
+The defaults will be applied if you use this.
+
+    $ pytest_config.[init|update] [-q|--noinput]`
+
+Make the command apply its operations only for the `.coveragerc` file.
+
+    $ pytest_config.[init|update] --coverage`
+
+Make the command apply its operations only for the `pytest.ini` file.
+
+    $ pytest_config.[init|update] --pytest-ini`
 
 #### Automatic test marking
 
@@ -69,15 +103,15 @@ it as a path relative to your current working directory, i.e. `caliendo`, `./cal
 
 ###### --caliendo-purge *
 
-The `--caliendo-purge` option will set the CALIENDO_PURGE environment variable
+The `--caliendo-purge` option will set the `CALIENDO_PURGE` environment variable
 so that caliendo can get rid of unused cache/evs/etc.
 
     $ py.test --caliendo --caliendo-purge
 
 ###### --caliendo-prompt *
 
-The `--caliendo-prompt` option will set the CALIENDO_PROMPT environment
-variable so that you may use the interactive prompt built in caliendo.s
+The `--caliendo-prompt` option will set the `CALIENDO_PROMPT` environment
+variable so that you may use the interactive prompt built in caliendo.
 
     $ py.test --caliendo --caliendo-prompt
 

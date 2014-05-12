@@ -1,0 +1,5 @@
+######################################################################
+#      Section [pytest_config] or options "pytest_ini_version"       #
+#   or "coveragerc_version" not found in your configuration file!!   #
+#           Please run pytest_config.update to fix this.             #
+######################################################################
