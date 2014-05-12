@@ -31,12 +31,8 @@ setup(
     author='Gerardo Orozco Mosqueda',
     author_email='gerard.mosqueda@buzzfeed.com',
     url='https://github.com/buzzfeed/pytest_config',
-    packages=[
-        'pytest_config',
-    ],
-    entry_points={
-        'pytest11': ['config = pytest_config.plugin']
-    },
+    packages=['pytest_config'],
+    entry_points={'pytest11': ['config = pytest_config.plugin']},
     data_files=define_data_files(),
     include_package_data=True,
     install_requires=[
