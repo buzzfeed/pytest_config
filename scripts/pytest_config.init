@@ -40,10 +40,8 @@ args = parser.parse_args()
 def create_from_template(tpl_name):
     config = ConfigParser.ConfigParser()
     with open(TEMPLATE_PATHS[tpl_name]['src'], 'r') as tpl:
-        print TEMPLATE_PATHS[tpl_name]['src']
         config.readfp(tpl)
     with open(TEMPLATE_PATHS[tpl_name]['dest'], 'w') as tpl:
-        print TEMPLATE_PATHS[tpl_name]['dest']
         config.write(tpl)
 
 

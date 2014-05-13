@@ -47,7 +47,6 @@ args = parser.parse_args()
 # Updater functions
 ###############################################################################
 def update_confg_version(name):
-    print 'Adding version'
     pytestini = ConfigParser.ConfigParser()
     with open(TEMPLATE_PATHS['pytest_ini']['dest']) as current:
         pytestini.readfp(current)
