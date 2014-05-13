@@ -10,18 +10,10 @@ except ImportError:
     from distutils.core import setup
 
 version = pytest_config.__version__
-
 readme = open('README.md').read()
 history = open('HISTORY.md').read()
 
-
-def define_data_files():
-    INSTALL_PATH = os.environ['PWD']
-    data_files = []
-    for dirpath, dirnames, filenames in os.walk('data'):
-        files = [os.path.join(dirpath, f) for f in filenames]
-        data_files.append((INSTALL_PATH, files))
-    return data_files
+HOME = os.environ['HOME']
 
 setup(
     name='pytest_config',
@@ -33,7 +25,15 @@ setup(
     url='https://github.com/buzzfeed/pytest_config',
     packages=['pytest_config'],
     entry_points={'pytest11': ['config = pytest_config.plugin']},
-    data_files=define_data_files(),
+    data_files=[
+        (HOME + '/.pytest_config/templates', ['data/coveragerc', 'data/pytest.ini']),
+        # ('pytest_config/_templates', ['pytest_config/_templates/outdated_conf_file.txt'])
+    ],
+    scripts=[
+        'scripts/pytest_config.init',
+        'scripts/pytest_config.update'
+    ],
+    package_data={'pytest_config': ['_templates/*.*']},
     include_package_data=True,
     install_requires=[
         'pytest>=2.3',

@@ -1,0 +1,65 @@
+#!/usr/bin/env python
+import argparse
+import ConfigParser
+import os
+
+HOME = os.environ['HOME']
+TEMPLATES_REL_DIR = '.pytest_config/templates'
+src = lambda f: os.path.join(HOME, TEMPLATES_REL_DIR, f)
+
+PROJECT_DIR = os.environ['PWD']
+dest = lambda f: os.path.join(PROJECT_DIR, f)
+
+TEMPLATE_PATHS = {
+    'pytest_ini': {'src': src('pytest.ini'), 'dest': dest('pytest.ini')},
+    'coveragerc': {'src': src('coveragerc'), 'dest': dest('.coveragerc')}
+}
+
+###############################################################################
+# Define command line arguments
+###############################################################################
+desc = 'Initialize py.test configuration files for this project.'
+parser = argparse.ArgumentParser(description=desc)
+
+parser.add_argument('-q', '--noinput',
+                    dest='quiet', action='store_true', default=False,
+                    help='Do not prompt for anything.')
+parser.add_argument('--coverage',
+                    dest='install_coveragerc', action='store_true', default=False,
+                    help='Install .coveragerc file excluding other files not explicitly requested.')
+parser.add_argument('--pytest-ini',
+                    dest='install_pytestini', action='store_true', default=False,
+                    help='Install pytest.ini file excluding other files not explicitly requested.')
+
+args = parser.parse_args()
+
+
+###############################################################################
+# Initializer functions
+###############################################################################
+def create_from_template(tpl_name):
+    config = ConfigParser.ConfigParser()
+    with open(TEMPLATE_PATHS[tpl_name]['src'], 'r') as tpl:
+        print TEMPLATE_PATHS[tpl_name]['src']
+        config.readfp(tpl)
+    with open(TEMPLATE_PATHS[tpl_name]['dest'], 'w') as tpl:
+        print TEMPLATE_PATHS[tpl_name]['dest']
+        config.write(tpl)
+
+
+def main():
+    if any([args.install_coveragerc, args.install_pytestini]):  # install only the requested file(s)
+        if args.install_coveragerc:
+            create_from_template('coveragerc')
+        elif args.install_pytestini:
+            create_from_template('pytest_ini')
+
+    else:  # install all files
+        create_from_template('coveragerc')
+        create_from_template('pytest_ini')
+
+
+if __name__ == '__main__':
+    main()
+else:
+    parser.print_help()

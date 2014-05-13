@@ -1,0 +1,6 @@
+----------------------------------------------------------------------
+      YOUR CONFIGURATION FILE "%(file_name)s" MIGHT BE OUTDATED.
+----------------------------------------------------------------------
++    You might want to run "pytest_config.update" and address the    +
++             appropriate changes as suitable for you.               +
+----------------------------------------------------------------------

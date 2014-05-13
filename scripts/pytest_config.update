@@ -1,0 +1,132 @@
+#!/usr/bin/env python
+import argparse
+import ConfigParser
+import os
+from pytest_config import (
+    __version__ as config_version,
+    CONFIG_SECTION
+)
+
+HOME = os.environ['HOME']
+TEMPLATES_REL_DIR = '.pytest_config/templates'
+src = lambda f: os.path.join(HOME, TEMPLATES_REL_DIR, f)
+
+PROJECT_DIR = os.environ['PWD']
+dest = lambda f: os.path.join(PROJECT_DIR, f)
+
+TEMPLATE_PATHS = {
+    'pytest_ini': {'src': src('pytest.ini'), 'dest': dest('pytest.ini')},
+    'coveragerc': {'src': src('coveragerc'), 'dest': dest('.coveragerc')}
+}
+
+PROMPT_MSG = '-%(name)s:\n  default: %(default)s\n  current: %(current)s\n' \
+             'Do you want t keep the current value? [y/n] >> '
+
+###############################################################################
+# Define command line arguments
+###############################################################################
+desc = 'Initialize py.test configuration files for this project.'
+parser = argparse.ArgumentParser(description=desc)
+
+parser.add_argument('-q', '--noinput',
+                    dest='quiet', action='store_true', default=False,
+                    help='Do not prompt for anything.')
+parser.add_argument('--coverage',
+                    dest='update_coveragerc', action='store_true',
+                    default=False, help='Update .coveragerc file excluding '
+                    'other files not explicitly requested.')
+parser.add_argument('--pytest-ini',
+                    dest='update_pytestini', action='store_true',
+                    default=False, help='Update pytest.ini file excluding '
+                    'other files not explicitly requested.')
+
+args = parser.parse_args()
+
+
+###############################################################################
+# Updater functions
+###############################################################################
+def update_confg_version(name):
+    print 'Adding version'
+    pytestini = ConfigParser.ConfigParser()
+    with open(TEMPLATE_PATHS['pytest_ini']['dest']) as current:
+        pytestini.readfp(current)
+        if not pytestini.has_section(CONFIG_SECTION):
+            pytestini.add_section(CONFIG_SECTION)
+        pytestini.set(CONFIG_SECTION, '%s_version' % name, config_version)
+    with open(TEMPLATE_PATHS['pytest_ini']['dest'], 'w') as current:
+        pytestini.write(current)
+
+
+def update_config_file_defaults(template):
+    """
+    Updates a pytest_config configuration file by interactively merging
+    the defaults into the current, customized project configuration.
+
+    :param str template: The key to a template in TEMPLATE_PATHS global
+
+    """
+    default_config = ConfigParser.ConfigParser()
+    with open(TEMPLATE_PATHS[template]['src']) as defaults:
+        default_config.readfp(defaults)
+
+    config = ConfigParser.ConfigParser()
+    with open(TEMPLATE_PATHS[template]['dest']) as current:
+        config.readfp(current)
+        short_name = current.name.rsplit('/', 1)[-1]
+
+    print '[[ UPDATING "%s" CONFIG FILE ]]' % short_name
+
+    up_to_date = False
+    for section in default_config.sections():
+        up_to_date = default_config.items(section) == config.items(section)
+        if not up_to_date:
+            break
+
+    if up_to_date:
+        print 'Nothing to update for ' + short_name
+        update_confg_version(template)
+        return
+
+    for section in default_config.sections():
+        print [section]
+        if default_config.items(section) == config.items(section):
+            print '- Up to date'
+            continue
+        for name, default in default_config.items(section):
+            # ask if they want to keep it or use the default
+            if config.has_option(section, name) and \
+                config.get(section, name) != default:
+                if not args.quiet:
+                    format = {'name': name,
+                              'default': default,
+                              'current': config.get(section, name)}
+                    # @TODO: Read and compare multiple values in the same line
+                    # and ask whether to keep/replace individual differences.
+                    keep_current = raw_input(PROMPT_MSG % format).lower()
+                    if keep_current == 'y':
+                        continue
+            config.set(section, name, default)
+
+    with open(TEMPLATE_PATHS[template]['dest'], 'w') as current:
+        config.write(current)
+    update_confg_version(template)
+
+
+def main():
+    # update only the requested file(s)
+    if any([args.update_coveragerc, args.update_pytestini]):
+        if args.update_coveragerc:
+            update_config_file_defaults('coveragerc')
+        elif args.update_pytestini:
+            update_config_file_defaults('pytest_ini')
+
+    else:  # update all files
+        update_config_file_defaults('coveragerc')
+        update_config_file_defaults('pytest_ini')
+
+
+if __name__ == '__main__':
+    main()
+else:
+    parser.print_help()

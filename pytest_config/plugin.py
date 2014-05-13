@@ -1,29 +1,75 @@
 # -*- coding: utf-8 -*-
+import ConfigParser
 import os
 import pytest
+import sys
+from . import (
+    __version__ as __pytest_version__,
+    CONFIG_SECTION,
+    get_template,
+    print_error,
+    print_warning,
+)
 
+PROJECT_ROOT = os.getcwd()
 
 
 def pytest_addoption(parser):
-    group = parser.getgroup('Caliendo', 'Caliendo specific configs')
-    group.addoption('--caliendo',
-                    action='store_true', dest='use_caliendo', default=False,
-                    help='Use caliendo with your tests.')
-    group.addoption('--caliendo-prefix',
-                    action='store', dest='caliendo_prefix', default=None,
-                    help='Set the destination for caliendo files.'
-                    'Defaults to $PWD/caliendo')
-    group.addoption('--caliendo-purge',
-                    action='store_true',dest='purge_caliendo', default=False,
-                    help='Set CALIENDO_PURGE=True to clean unused caliendo files')
-    group.addoption('--caliendo-prompt',
-                    action='store_true', dest='caliendo_prompt', default=False,
-                    help='Set CALIENDO_PROMPT=True to enable the caliendo prompt')
+    caliendo_group = parser.getgroup('Caliendo', 'Caliendo specific configs')
+    caliendo_group.addoption(
+        '--caliendo',
+        action='store_true', dest='use_caliendo', default=False,
+        help='Use caliendo with your tests.')
+    caliendo_group.addoption(
+        '--caliendo-prefix',
+        action='store', dest='caliendo_prefix', default=None,
+        help='Set the destination for caliendo files.'
+             'Defaults to $PWD/caliendo')
+    caliendo_group.addoption(
+        '--caliendo-purge',
+        action='store_true',dest='purge_caliendo', default=False,
+        help='Set CALIENDO_PURGE=True to clean unused caliendo files')
+    caliendo_group.addoption(
+        '--caliendo-prompt',
+        action='store_true', dest='caliendo_prompt', default=False,
+        help='Set CALIENDO_PROMPT=True to enable the caliendo prompt')
 
+    general_group = parser.getgroup('general')
+    general_group.addoption(
+        '-I', '--ignore-warnings',
+        action='store_true', dest='ignore_warnings', default=False,
+        help='Ignore pytest_config warnings.')
+
+
+def check_config_files_versions():
+    def warn_outdated_version(file_name):
+        with open(get_template('outdated_conf_file')) as warning:
+            text = warning.read()
+            print_warning(text % {'file_name': file_name})
+
+    def error_out():
+        with open(get_template('config_section_not_found')) as error:
+            print_error(error.read())
+        sys.exit(0)
+
+    config = ConfigParser.ConfigParser()
+    with open(os.path.join(PROJECT_ROOT, 'pytest.ini')) as current_config:
+        config.readfp(current_config)
+    # A pytest_config section is required in pytest.ini
+    if not config.has_section(CONFIG_SECTION):
+        error_out()
+
+    # Check version of config files
+    files = {'pytest_ini': 'pytest.ini', 'coveragerc': '.coveragerc'}
+    for option_name, file_name in files.iteritems():
+        option = option_name + '_version'
+        if config.has_option(CONFIG_SECTION, option):
+            if config.get(CONFIG_SECTION, option) != __pytest_version__:
+                warn_outdated_version(file_name)
+        else:
+            error_out()
 
 def pytest_configure(config):
-    PROJECT_ROOT = os.environ.get('PWD')
-
     if config.getvalue('use_caliendo'):
         # Add caliendo cache variables
         os.environ.setdefault('USE_CALIENDO', 'True')
@@ -39,6 +85,9 @@ def pytest_configure(config):
 
         if config.getvalue('caliendo_prompt'):
             os.environ['CALIENDO_PROMPT'] = 'True'
+
+    if not config.getvalue('ignore_warnings'):
+        check_config_files_versions()
 
     # Add line arguments
     config.addinivalue_line('markers', 'unit: Mark a test as a unit test. Useful for running only unit tests.')
