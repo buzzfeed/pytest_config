@@ -6,9 +6,9 @@ import sys
 from . import (
     __version__ as __pytest_version__,
     CONFIG_SECTION,
-    get_template,
-    print_error,
-    print_warning,
+    _get_template,
+    _print_error,
+    _print_warning,
 )
 
 PROJECT_ROOT = os.getcwd()
@@ -43,13 +43,13 @@ def pytest_addoption(parser):
 
 def check_config_files_versions():
     def warn_outdated_version(file_name):
-        with open(get_template('outdated_conf_file')) as warning:
+        with open(_get_template('outdated_conf_file.txt')) as warning:
             text = warning.read()
-            print_warning(text % {'file_name': file_name})
+            _print_warning(text % {'file_name': file_name})
 
     def error_out():
-        with open(get_template('config_section_not_found')) as error:
-            print_error(error.read())
+        with open(_get_template('config_section_not_found.txt')) as error:
+            _print_error(error.read())
         sys.exit(0)
 
     config = ConfigParser.ConfigParser()
@@ -60,9 +60,8 @@ def check_config_files_versions():
         error_out()
 
     # Check version of config files
-    files = {'pytest_ini': 'pytest.ini', 'coveragerc': '.coveragerc'}
-    for option_name, file_name in files.iteritems():
-        option = option_name + '_version'
+    for file_name in ['pytest.ini', '.coveragerc']:
+        option = file_name + '_version'
         if config.has_option(CONFIG_SECTION, option):
             if config.get(CONFIG_SECTION, option) != __pytest_version__:
                 warn_outdated_version(file_name)

@@ -1,5 +1,12 @@
 # History
 
+### 0.0.3 (2014-05-15)
+
+* Added `--fix-path-issues` option to inspect the current django project and
+check whether the project is available in the `PYTHON_PATH` for `py.test`;
+if not, add it to the pat by installing in via a simple `setup.py` file.
+* Made `pytest_config.init` and `pytest_config.update` more verbose.
+
 ## 0.0.2 (2014-05-13)
 
 * Added commands to initialize and interactively update the configuration files.

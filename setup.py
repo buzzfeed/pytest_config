@@ -40,8 +40,7 @@ setup(
         'pytest-cov==1.6',
         'pytest-cache==1.0',
         'pytest-pep8==1.0.6',
-        'pytest-random==0.2',
-        'pytest-sugar==0.3.4'
+        'pytest-random==0.2'
     ],
     zip_safe=False,
     classifiers=[
