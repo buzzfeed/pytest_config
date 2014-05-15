@@ -1,10 +1,10 @@
-# pytest-config
+# pytest-config 0.0.3
 
 Base configurations and utilities for developing your Python project test suite.
 
 ### Installation
 
-    pip install git+git://github.com/buzzfeed/pytest_config.git@0.0.2#egg=pytest_config==0.0.2
+    pip install git+git://github.com/buzzfeed/pytest_config.git@0.0.3#egg=pytest_config==0.0.3
 
 This will install:
 
@@ -31,7 +31,7 @@ configuration files. If any of the options in you custom configuration differs
 from the defaults, you will be prompted if you want to keep the current one.
 If you decline, the default will be saved to your local configuration.
 
-The two previous command share their interface, which is as follows:
+The two previous commands share their interface, which is as follows:
 
 Print the help page.
 
@@ -49,6 +49,12 @@ Make the command apply its operations only for the `.coveragerc` file.
 Make the command apply its operations only for the `pytest.ini` file.
 
     $ pytest_config.[init|update] --pytest-ini`
+
+#### Automatic fix for the sys.path known issue.
+
+`pytest_config` takes care of the `sys.path`
+[known issue between pytest and pytest-django](http://pytest-django.readthedocs.org/en/latest/faq.html#i-see-an-error-saying-could-not-import-myproject-settings)
+by fake-installing your project, adding a simple `setup.py` if necessary.
 
 #### Automatic test marking
 
@@ -88,31 +94,31 @@ smoothly with [caliendo](https://github.com/buzzfeed/caliendo).
 
 ###### --caliendo
 
-Running `py.test` with `--caliendo` will enable the overall use of `caliendo`
-in your tests
+Enable the overall use of `caliendo` in your tests.
 
     $ py.test --caliendo
 
 ###### --caliendo-prefix *
 
-The `--caliendo-prefix` option will set the path to where the caliendo files
-should live. If you are defining this yourself, it's recommended that you set
-it as a path relative to your current working directory, i.e. `caliendo`, `./caliendo`, `whatever/caliendo`
+Set the path to where the caliendo files should live. If you are defining this
+yourself, it's recommended that you set it as a path relative to your current
+working directory, i.e. `caliendo`, `./caliendo`, `whatever/caliendo` and not
+as an absolute path. Defaults to `$PWD/caliendo`.
 
     $ py.test --caliendo --caliendo-prefix [path_to_caliendo_files]
 
 ###### --caliendo-purge *
 
-The `--caliendo-purge` option will set the `CALIENDO_PURGE` environment variable
-so that caliendo can get rid of unused cache/evs/etc.
+Set the `CALIENDO_PURGE` environment variable so that caliendo can get rid of
+unused cache, evs, etc.
 
     $ py.test --caliendo --caliendo-purge
 
 ###### --caliendo-prompt *
 
-The `--caliendo-prompt` option will set the `CALIENDO_PROMPT` environment
-variable so that you may use the interactive prompt built in caliendo.
+Set the `CALIENDO_PROMPT` environment variable so that you may use the
+[interactive prompt built in caliendo](https://github.com/buzzfeed/caliendo#configuration).
 
     $ py.test --caliendo --caliendo-prompt
 
-\* This requires the --caliendo option to be present*
+\* *This requires the --caliendo option to be present*
