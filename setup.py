@@ -27,7 +27,6 @@ setup(
     entry_points={'pytest11': ['config = pytest_config.plugin']},
     data_files=[
         (HOME + '/.pytest_config/templates', ['data/coveragerc', 'data/pytest.ini']),
-        # ('pytest_config/_templates', ['pytest_config/_templates/outdated_conf_file.txt'])
     ],
     scripts=[
         'scripts/pytest_config.init',

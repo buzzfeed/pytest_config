@@ -3,10 +3,9 @@ import argparse
 import ConfigParser
 import os
 from pytest_config import (
-    _print_success,
-    _print_error,
     add_project_to_pytest_path,
-    update_confg_version
+    update_confg_version,
+    pretty
 )
 
 HOME = os.environ['HOME']
@@ -54,9 +53,9 @@ def create_from_template(tpl_name):
         with open(TEMPLATE_PATHS[tpl_name]['dest'], 'w') as tpl:
             config.write(tpl)
     except:
-        _print_error('\nAn unexpected error occurred. Please address it and try again.')
+        pretty._print_error('\nAn unexpected error occurred. Please address it and try again.')
     else:
-        _print_success(' [OK]')
+        pretty._print_success(' [OK]')
     update_confg_version(TEMPLATE_PATHS, tpl_name)
 
 
