@@ -1,19 +1,26 @@
 # -*- coding: utf-8 -*-
 import ConfigParser
+import inspect
 import os
-import pytest
 import sys
+import warnings
+
+import pytest
+
 from . import (
     __version__ as __pytest_version__,
     CONFIG_SECTION,
     _get_template,
-    _print_error,
-    _print_warning,
+    pretty
 )
 
 PROJECT_ROOT = os.getcwd()
+warnings.formatwarning = pretty.formatwarning  # overwrite default warning format
 
 
+###############################################################################
+# Custom options to integrate with Caliendo
+###############################################################################
 def pytest_addoption(parser):
     caliendo_group = parser.getgroup('Caliendo', 'Caliendo specific configs')
     caliendo_group.addoption(
@@ -41,15 +48,20 @@ def pytest_addoption(parser):
         help='Ignore pytest_config warnings.')
 
 
+###############################################################################
+# This is for checking if the configuration files have bee properly updated
+# to their last version, regardles if the user decided to ignore the changes
+# in latest versions of this plugin
+###############################################################################
 def check_config_files_versions():
     def warn_outdated_version(file_name):
         with open(_get_template('outdated_conf_file.txt')) as warning:
             text = warning.read()
-            _print_warning(text % {'file_name': file_name})
+            pretty._print_warning(text % {'file_name': file_name})
 
     def error_out():
         with open(_get_template('config_section_not_found.txt')) as error:
-            _print_error(error.read())
+            pretty._print_error(error.read())
         sys.exit(0)
 
     config = ConfigParser.ConfigParser()
@@ -68,6 +80,10 @@ def check_config_files_versions():
         else:
             error_out()
 
+###############################################################################
+# Run the appropriate setup before running the tests according to the arguments
+# used.
+###############################################################################
 def pytest_configure(config):
     if config.getvalue('use_caliendo'):
         # Add caliendo cache variables
@@ -89,8 +105,35 @@ def pytest_configure(config):
         check_config_files_versions()
 
     # Add line arguments
-    config.addinivalue_line('markers', 'unit: Mark a test as a unit test. Useful for running only unit tests.')
-    config.addinivalue_line('markers', 'integration: Mark a test as an integration test. Useful for running only integration tests.')
+    config.addinivalue_line('markers', 'unit: Mark a test as a unit test. '
+        'Useful for running only unit tests.')
+    config.addinivalue_line('markers', 'integration: Mark a test as an '
+        'integration test. Useful for running only integration tests.')
+
+
+###############################################################################
+# If `requests` is available, patch it so that a warning is printed when
+# requests to endpoints are not properly patched.
+###############################################################################
+import socket
+old_socket = socket.socket
+
+
+@pytest.fixture(autouse=True)
+def no_requests(monkeypatch):
+    class fake_socket(old_socket):
+        def connect(self, address):
+            local_stack = [s for s in inspect.stack() if os.getcwd() in s[1]]
+            msg = 'YOUR TEST IS MAKING A LIVE REQUEST. LIVE REQUESTS SHOULD BE PATCHED!\n'
+            for s in local_stack:
+                msg += 'File "%s", line %s, in %s\n' % (s[1], s[2], s[3])
+                for l in s[4]:
+                    msg += l
+            warnings.warn(msg, Warning)
+            return super(fake_socket, self).connect(address)
+
+    if not socket.socket == fake_socket:
+        monkeypatch.setattr("socket.socket", fake_socket)
 
 
 def pytest_collection_modifyitems(items):
@@ -115,8 +158,10 @@ def apply_test_type_markers(items):
                 └── test_bar.py
 
     Under this architecture:
-     - test functions/methods inside `unit/*.py` will be marked with `@pytest.mark.app_name` and `@pytest.mark.unit`
-     - test functions/methods inside `integration/*.py` will be marked with `@pytest.mark.app_name` and `@pytest.mark.integration`
+     - test functions/methods inside `unit/*.py` will be marked with
+        `@pytest.mark.app_name` and `@pytest.mark.unit`
+     - test functions/methods inside `integration/*.py` will be marked with
+        `@pytest.mark.app_name` and `@pytest.mark.integration`
     and so on, based on what types of tests you need to write and run.
 
     This will allow you to run tests on a per-app and per-type basis by running:

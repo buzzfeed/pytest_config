@@ -5,12 +5,9 @@ import os
 import sys
 
 from pytest_config import (
-    _print_color,
-    _print_success,
-    _print_warning,
-    _print_error,
     add_project_to_pytest_path,
-    update_confg_version
+    update_confg_version,
+    pretty
 )
 
 HOME = os.environ['HOME']
@@ -62,7 +59,7 @@ def update_config_file_defaults(template):
         with open(TEMPLATE_PATHS[template]['src']) as defaults:
             default_config.readfp(defaults)
     except IOError:
-        _print_error('ERROR: Unable to update. The template for', template,
+        pretty._print_error('ERROR: Unable to update. The template for', template,
                      'is missing. Please check that or reinstall pytest_config'
                      'to fix this.')
         sys.exit(1)
@@ -73,11 +70,11 @@ def update_config_file_defaults(template):
             config.readfp(current)
             short_name = current.name.rsplit('/', 1)[-1]
     except IOError:
-        _print_error('ERROR: Unable to update. Missing local', template,
+        pretty._print_error('ERROR: Unable to update. Missing local', template,
                      'file. Please run `pytest_config.init` first')
         sys.exit(1)
 
-    _print_warning('Updating ', short_name, '\b...', new_line=False)
+    pretty._print_warning('Updating ', short_name, '\b...', new_line=False)
 
     # Check if an update is necessary
     up_to_date = False
@@ -88,16 +85,16 @@ def update_config_file_defaults(template):
 
     if up_to_date:
         # Everything is up-to-date, exit
-        _print_success(' [UP TO DATE]')
+        pretty._print_success(' [UP TO DATE]')
         update_confg_version(TEMPLATE_PATHS, template)
         return
 
     # Changes detected, perform interactive update
     for section in default_config.sections():
-        _print_color(['\nSection:', [section]], bold=True, new_line=False)
+        pretty._print_color(['\nSection:', [section]], bold=True, new_line=False)
         if default_config.items(section) == config.items(section):
             # Section up-to-date, move to the next
-            _print_success(' [UP TO DATE]\n', new_line=False)
+            pretty._print_success(' [UP TO DATE]\n', new_line=False)
             continue
         print ''
         for name, default in default_config.items(section):
@@ -107,9 +104,12 @@ def update_config_file_defaults(template):
                 if not args.quiet:
                     # @TODO: Read and compare multiple values in the same line
                     # and ask whether to keep/replace individual differences.
-                    _print_color(['*%s:' % name], bold=True)
-                    print '  default: %s' % default
-                    print '  current: %s' % config.get(section, name)
+                    pretty._print_color(['*%s:' % name], bold=True)
+                    print pretty.colorize_text('  default: %s' % default,
+                                                color=pretty.RED)
+                    print pretty.colorize_text(
+                        '  current: %s' % config.get(section, name),
+                        color=pretty.GREEN)
                     prompt_msg = '  Keep the current value? [y/n] > '
                     keep_current = raw_input(prompt_msg).lower()
                     if keep_current == 'y':

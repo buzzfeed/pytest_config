@@ -1,5 +1,10 @@
 # History
 
+### 0.0.4 (2014-05-22)
+
+* Refactored `_print_color` to make text coloring function `colorize_text`
+importable and reusable over apps using `pytest_config`.
+
 ### 0.0.3 (2014-05-15)
 
 * Added `--fix-path-issues` option to inspect the current django project and
