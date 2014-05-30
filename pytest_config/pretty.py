@@ -5,9 +5,13 @@ RED = 31
 GREEN = 32
 YELLOW = 33
 
+CHECK_MARK = u'\u2713'
+
 
 def colorize_text(text, color=SYSTEM, bold=False):
     base_text = '\033[{bold};{color}m{text}\033[0m'
+    if isinstance(text, unicode):
+        base_text = unicode(base_text)
     color = (color, 1)[bold and color == SYSTEM]
     return base_text.format(bold=int(bold), color=color, text=text)
 

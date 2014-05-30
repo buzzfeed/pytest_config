@@ -2,7 +2,6 @@
 import argparse
 import ConfigParser
 import os
-import sys
 
 from pytest_config import (
     add_project_to_pytest_path,
@@ -28,9 +27,15 @@ TEMPLATE_PATHS = {
 desc = 'Keep py.test configuration files for this project up-to-date.'
 parser = argparse.ArgumentParser(description=desc)
 
-parser.add_argument('-q', '--noinput',
-                    dest='quiet', action='store_true', default=False,
-                    help='Do not prompt for anything.')
+parser.add_argument('-y',
+                    dest='overwrite', action='store_true', default=False,
+                    help='Do not prompt for anything. Assumes you want '
+                    'all the default settings.')
+parser.add_argument('-p', '--fix-path',
+                    dest='fix_path', action='store_true', default=False,
+                    help='Only fix the PYTHONPATH for pytest-django and '
+                    'finish without updating. This occurs by default whenever '
+                    'you update your configuration files.')
 parser.add_argument('--coverage',
                     dest='update_coveragerc', action='store_true',
                     default=False, help='Update .coveragerc file excluding '
@@ -46,6 +51,20 @@ args = parser.parse_args()
 ###############################################################################
 # Updater functions
 ###############################################################################
+def write_to_file(template, config):
+    """
+    Writes the given configurations into the given file name.
+    After writting out, updates the file version to the current version.
+
+    :param str name: The name of the template to write out.
+    :param ConfigParser.ConfigParser config: The configurations to write.
+
+    """
+    with open(TEMPLATE_PATHS[template]['dest'], 'w') as current:
+        config.write(current)
+    update_confg_version(TEMPLATE_PATHS, template)
+
+
 def update_config_file_defaults(template):
     """
     Updates a pytest_config configuration file by interactively merging
@@ -54,6 +73,7 @@ def update_config_file_defaults(template):
     :param str template: The key to a template in TEMPLATE_PATHS global
 
     """
+    #  Read the default configurations template
     default_config = ConfigParser.ConfigParser()
     try:
         with open(TEMPLATE_PATHS[template]['src']) as defaults:
@@ -62,78 +82,84 @@ def update_config_file_defaults(template):
         pretty._print_error('ERROR: Unable to update. The template for', template,
                      'is missing. Please check that or reinstall pytest_config'
                      'to fix this.')
-        sys.exit(1)
+        raise SystemExit(1)
 
-    config = ConfigParser.ConfigParser()
+    # Read the current configurations file
+    current_config = ConfigParser.ConfigParser()
     try:
         with open(TEMPLATE_PATHS[template]['dest']) as current:
-            config.readfp(current)
+            current_config.readfp(current)
             short_name = current.name.rsplit('/', 1)[-1]
     except IOError:
         pretty._print_error('ERROR: Unable to update. Missing local', template,
                      'file. Please run `pytest_config.init` first')
-        sys.exit(1)
+        raise SystemExit(1)
 
     pretty._print_warning('Updating ', short_name, '\b...', new_line=False)
 
     # Check if an update is necessary
     up_to_date = False
     for section in default_config.sections():
-        up_to_date = default_config.items(section) == config.items(section)
+        up_to_date = default_config.items(section) == current_config.items(section)
         if not up_to_date:
             break
 
-    if up_to_date:
-        # Everything is up-to-date, exit
+    if up_to_date: # Everything is up-to-date, exit
         pretty._print_success(' [UP TO DATE]')
         update_confg_version(TEMPLATE_PATHS, template)
         return
 
-    # Changes detected, perform interactive update
-    for section in default_config.sections():
-        pretty._print_color(['\nSection:', [section]], bold=True, new_line=False)
-        if default_config.items(section) == config.items(section):
-            # Section up-to-date, move to the next
-            pretty._print_success(' [UP TO DATE]\n', new_line=False)
-            continue
-        print ''
-        for name, default in default_config.items(section):
-            # ask if they want to keep it or use the default
-            if config.has_option(section, name) and \
-                config.get(section, name) != default:
-                if not args.quiet:
+    # Changes detected, perform interactive update,
+    # but first, we need to know if the user wants to be prompted.
+    if args.overwrite:
+        # Automaitc overwrite requested. Set all the default values.
+        pretty._print_success(' [DONE]')
+        write_to_file(template, default_config)
+
+    else:
+        for section in default_config.sections():
+            pretty._print_color(['\nSection:', [section]], bold=True, new_line=False)
+            if default_config.items(section) == current_config.items(section):
+                # Section up-to-date, move to the next
+                pretty._print_success(' [UP TO DATE]\n', new_line=False)
+                continue
+            print  # just print a new line, for prettyfying the output
+
+            for name, default in default_config.items(section):
+                # ask if they want to keep it or use the default
+                if current_config.has_option(section, name) and \
+                    current_config.get(section, name) != default:
                     # @TODO: Read and compare multiple values in the same line
                     # and ask whether to keep/replace individual differences.
                     pretty._print_color(['*%s:' % name], bold=True)
                     print pretty.colorize_text('  default: %s' % default,
                                                 color=pretty.RED)
                     print pretty.colorize_text(
-                        '  current: %s' % config.get(section, name),
+                        '  current: %s' % current_config.get(section, name),
                         color=pretty.GREEN)
-                    prompt_msg = '  Keep the current value? [y/n] > '
+                    prompt_msg = '  Keep the current value? [y/n] (default=n) > '
                     keep_current = raw_input(prompt_msg).lower()
                     if keep_current == 'y':
                         continue
-            config.set(section, name, default)
-
-    with open(TEMPLATE_PATHS[template]['dest'], 'w') as current:
-        config.write(current)
-    update_confg_version(TEMPLATE_PATHS, template)
-
+                current_config.set(section, name, default)
+        write_to_file(template, current_config)
 
 def main():
+    if args.fix_path:
+        add_project_to_pytest_path()
+        return
+
     # update only the requested file(s)
     if any([args.update_coveragerc, args.update_pytestini]):
-        if args.update_coveragerc:
-            update_config_file_defaults('.coveragerc')
-        elif args.update_pytestini:
+        if args.update_pytestini:
             update_config_file_defaults('pytest.ini')
+        elif args.update_coveragerc:
+            update_config_file_defaults('.coveragerc')
 
     else:  # update all files
-        update_config_file_defaults('.coveragerc')
         update_config_file_defaults('pytest.ini')
+        update_config_file_defaults('.coveragerc')
 
-    add_project_to_pytest_path()
 
 
 if __name__ == '__main__':
