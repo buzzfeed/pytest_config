@@ -16,6 +16,7 @@ from . import (
 
 PROJECT_ROOT = os.getcwd()
 warnings.formatwarning = pretty.formatwarning  # overwrite default warning format
+SETTINGS_MODULE_ENV = 'django_settings_module'
 
 
 ###############################################################################
@@ -47,6 +48,9 @@ def pytest_addoption(parser):
         action='store_true', dest='ignore_warnings', default=False,
         help='Ignore pytest_config warnings.')
 
+    parser.addini(SETTINGS_MODULE_ENV,
+                  'Django settings module to use by pytest-django.')
+
 
 ###############################################################################
 # This is for checking if the configuration files have bee properly updated
@@ -75,7 +79,7 @@ def check_config_files_versions():
     for file_name in ['pytest.ini', '.coveragerc']:
         option = file_name + '_version'
         if config.has_option(CONFIG_SECTION, option):
-            if config.get(CONFIG_SECTION, option) != __pytest_version__:
+            if config.get(CONFIG_SECTION, option) < __pytest_version__:
                 warn_outdated_version(file_name)
         else:
             error_out()
@@ -85,6 +89,13 @@ def check_config_files_versions():
 # used.
 ###############################################################################
 def pytest_configure(config):
+    # pytest-django expects the settings module variable to be uppercase
+    # but variables, by standard, should be lowercase.
+    # Enable usage of lowercase configuration variable for DJANGO_SETTINGS_MODULE
+    django_settings_module = config.getini(SETTINGS_MODULE_ENV)
+    if django_settings_module:
+        os.environ[SETTINGS_MODULE_ENV.upper()] = django_settings_module
+
     if config.getvalue('use_caliendo'):
         # Add caliendo cache variables
         os.environ.setdefault('USE_CALIENDO', 'True')

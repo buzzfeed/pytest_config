@@ -1,9 +1,8 @@
-__version__ = '0.0.4'
+__version__ = '0.0.5'
 
 import ConfigParser
 import os
 import subprocess
-import sys
 from . import pretty
 
 CONFIG_SECTION = 'pytest_config'
@@ -18,7 +17,8 @@ def add_project_to_pytest_path():
     This function will check if the current project is in the path and will
     add it if it isn't already.
     """
-    project_wsgi = subprocess.check_output('ls */wsgi.py', shell=True).replace('\n', '')
+    project_wsgi = subprocess.check_output('ls */wsgi.py',
+                                           shell=True).replace('\n', '')
     project_name = project_wsgi.replace('/wsgi.py', '')
 
     # Verify setup.py exists. Create one otherwise.
@@ -33,25 +33,25 @@ def add_project_to_pytest_path():
         pretty._print_success(' [OK]')
 
     # Check if project is installed
-    print 'Checking if project is in py.test path...',
     cmd = 'pip install --no-install --no-download %s > /dev/null'
     return_value = subprocess.call(cmd % project_name, shell=True)
     if return_value != 0:  # already installed
-        pretty._print_error('[NOT IN PATH]')
-        pretty._print_warning('Adding project to py.test path...', new_line=False)
+        pretty._print_warning('Adding project to pytest-django path...',
+                              new_line=False)
         subprocess.call('pip install -e . > /dev/null', shell=True)
         pretty._print_success(' [OK]')
     else:
-        pretty._print_success(' [ALREADY IN PATH]')
+        success_message = 'Project is already available for pytest-django!'
+        pretty._print_success(pretty.CHECK_MARK, success_message)
 
     # Add project.egg to gitignore
     if not os.path.exists('.gitignore'):
         subprocess.call('touch .gitignore', shell=True)
-    return_value = subprocess.call('cat .gitignore | grep .egg > /dev/null', shell=True)
-    if return_value != 0:
-        subprocess.call('echo "*.egg*" >> .gitignore', shell=True)
+    cmd = '(cat .gitignore | grep .egg && echo "*.egg*" >> .gitignore) > /dev/null'
+    subprocess.call(cmd, shell=True)
 
-    pretty._print_success('[SUCESS] You can now run your tests with py.test', bold=True)
+    success_message = 'You can now run your tests with py.test'
+    pretty._print_success(pretty.CHECK_MARK, success_message)
 
 
 def update_confg_version(template_paths, name):
@@ -63,9 +63,9 @@ def update_confg_version(template_paths, name):
                 pytestini.add_section(CONFIG_SECTION)
             pytestini.set(CONFIG_SECTION, '%s_version' % name, __version__)
     except IOError:
-        pretty._print_error('ERROR: Unable to set the current version of', name,
+        pretty._print_error('ERROR: Unable to set current version of', name,
                      '. Please make sure you have a pytest.ini and try again.')
-        sys.exit(1)
+        raise SystemExit(1)
     with open(template_paths['pytest.ini']['dest'], 'w') as current:
         pytestini.write(current)
     print '[pytest_config] Updated version of', name, 'to', __version__

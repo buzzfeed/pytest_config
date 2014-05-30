@@ -1,5 +1,12 @@
 # History
 
+### 0.0.5 (2014-05-30)
+
+* Added support for lowercase `django_settings_module` ini value in pytest.ini
+* Added `-y`, `--overwrite` to `pytest_config.update` that will make the script
+automatically overwrite the user configurations with the defaults.
+* Added `-p`, `--fix-path` to only fix the pytest-django known issue.
+
 ### 0.0.4 (2014-05-22)
 
 * Refactored `_print_color` to make text coloring function `colorize_text`
