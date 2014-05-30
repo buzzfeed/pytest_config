@@ -61,11 +61,11 @@ def check_config_files_versions():
     def warn_outdated_version(file_name):
         with open(_get_template('outdated_conf_file.txt')) as warning:
             text = warning.read()
-            pretty._print_warning(text % {'file_name': file_name})
+            pretty.print_warning(text % {'file_name': file_name})
 
     def error_out():
         with open(_get_template('config_section_not_found.txt')) as error:
-            pretty._print_error(error.read())
+            pretty.print_error(error.read())
         sys.exit(0)
 
     config = ConfigParser.ConfigParser()
@@ -88,6 +88,18 @@ def check_config_files_versions():
 # Run the appropriate setup before running the tests according to the arguments
 # used.
 ###############################################################################
+@pytest.mark.tryfirst
+def pytest_load_initial_conftests(early_config, parser, args):
+    from django.conf import settings
+    try:
+        settings.DATABASES
+    except ImportError:
+        e = sys.exc_info()[1]
+        pretty.print_error(*e.args)
+        pretty.print_error('Perhaps all you need to do is run: pytest_config.update -p')
+        raise SystemExit(1)
+
+
 def pytest_configure(config):
     # pytest-django expects the settings module variable to be uppercase
     # but variables, by standard, should be lowercase.

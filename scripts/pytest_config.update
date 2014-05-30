@@ -79,7 +79,7 @@ def update_config_file_defaults(template):
         with open(TEMPLATE_PATHS[template]['src']) as defaults:
             default_config.readfp(defaults)
     except IOError:
-        pretty._print_error('ERROR: Unable to update. The template for', template,
+        pretty.print_error('ERROR: Unable to update. The template for', template,
                      'is missing. Please check that or reinstall pytest_config'
                      'to fix this.')
         raise SystemExit(1)
@@ -91,11 +91,11 @@ def update_config_file_defaults(template):
             current_config.readfp(current)
             short_name = current.name.rsplit('/', 1)[-1]
     except IOError:
-        pretty._print_error('ERROR: Unable to update. Missing local', template,
+        pretty.print_error('ERROR: Unable to update. Missing local', template,
                      'file. Please run `pytest_config.init` first')
         raise SystemExit(1)
 
-    pretty._print_warning('Updating ', short_name, '\b...', new_line=False)
+    pretty.print_warning('Updating ', short_name, '\b...', new_line=False)
 
     # Check if an update is necessary
     up_to_date = False
@@ -105,7 +105,7 @@ def update_config_file_defaults(template):
             break
 
     if up_to_date: # Everything is up-to-date, exit
-        pretty._print_success(' [UP TO DATE]')
+        pretty.print_success(' [UP TO DATE]')
         update_confg_version(TEMPLATE_PATHS, template)
         return
 
@@ -113,15 +113,15 @@ def update_config_file_defaults(template):
     # but first, we need to know if the user wants to be prompted.
     if args.overwrite:
         # Automaitc overwrite requested. Set all the default values.
-        pretty._print_success(' [DONE]')
+        pretty.print_success(' [DONE]')
         write_to_file(template, default_config)
 
     else:
         for section in default_config.sections():
-            pretty._print_color(['\nSection:', [section]], bold=True, new_line=False)
+            pretty.print_color(['\nSection:', [section]], bold=True, new_line=False)
             if default_config.items(section) == current_config.items(section):
                 # Section up-to-date, move to the next
-                pretty._print_success(' [UP TO DATE]\n', new_line=False)
+                pretty.print_success(' [UP TO DATE]\n', new_line=False)
                 continue
             print  # just print a new line, for prettyfying the output
 
@@ -131,7 +131,7 @@ def update_config_file_defaults(template):
                     current_config.get(section, name) != default:
                     # @TODO: Read and compare multiple values in the same line
                     # and ask whether to keep/replace individual differences.
-                    pretty._print_color(['*%s:' % name], bold=True)
+                    pretty.print_color(['*%s:' % name], bold=True)
                     print pretty.colorize_text('  default: %s' % default,
                                                 color=pretty.RED)
                     print pretty.colorize_text(

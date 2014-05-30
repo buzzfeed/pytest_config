@@ -16,7 +16,7 @@ def colorize_text(text, color=SYSTEM, bold=False):
     return base_text.format(bold=int(bold), color=color, text=text)
 
 
-def _print_color(args, color=SYSTEM, bold=False, new_line=True):
+def print_color(args, color=SYSTEM, bold=False, new_line=True):
     for arg in args:
         print colorize_text(arg, color=color, bold=bold),
     if new_line:
@@ -24,9 +24,9 @@ def _print_color(args, color=SYSTEM, bold=False, new_line=True):
     sys.stdout.flush()
 
 
-_print_success = lambda *args, **kwargs: _print_color(args, color=GREEN, **kwargs)
-_print_warning = lambda *args, **kwargs: _print_color(args, color=YELLOW, **kwargs)
-_print_error = lambda *args, **kwargs: _print_color(args, color=RED, **kwargs)
+print_success = lambda *args, **kwargs: print_color(args, color=GREEN, **kwargs)
+print_warning = lambda *args, **kwargs: print_color(args, color=YELLOW, **kwargs)
+print_error = lambda *args, **kwargs: print_color(args, color=RED, **kwargs)
 
 
 def formatwarning(message, category, filename, lineno, file_=None, line=None):
