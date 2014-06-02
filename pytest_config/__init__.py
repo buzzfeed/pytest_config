@@ -30,19 +30,19 @@ def add_project_to_pytest_path():
         template_content = template_content.format(project_name=project_name)
         with open('setup.py', 'w') as setuppy_file:
             setuppy_file.write(template_content)
-        pretty._print_success(' [OK]')
+        pretty.print_success(' [OK]')
 
     # Check if project is installed
     cmd = 'pip install --no-install --no-download %s > /dev/null'
     return_value = subprocess.call(cmd % project_name, shell=True)
     if return_value != 0:  # already installed
-        pretty._print_warning('Adding project to pytest-django path...',
+        pretty.print_warning('Adding project to pytest-django path...',
                               new_line=False)
         subprocess.call('pip install -e . > /dev/null', shell=True)
-        pretty._print_success(' [OK]')
+        pretty.print_success(' [OK]')
     else:
         success_message = 'Project is already available for pytest-django!'
-        pretty._print_success(pretty.CHECK_MARK, success_message)
+        pretty.print_success(pretty.CHECK_MARK, success_message)
 
     # Add project.egg to gitignore
     if not os.path.exists('.gitignore'):
@@ -51,7 +51,7 @@ def add_project_to_pytest_path():
     subprocess.call(cmd, shell=True)
 
     success_message = 'You can now run your tests with py.test'
-    pretty._print_success(pretty.CHECK_MARK, success_message)
+    pretty.print_success(pretty.CHECK_MARK, success_message)
 
 
 def update_confg_version(template_paths, name):
@@ -63,7 +63,7 @@ def update_confg_version(template_paths, name):
                 pytestini.add_section(CONFIG_SECTION)
             pytestini.set(CONFIG_SECTION, '%s_version' % name, __version__)
     except IOError:
-        pretty._print_error('ERROR: Unable to set current version of', name,
+        pretty.print_error('ERROR: Unable to set current version of', name,
                      '. Please make sure you have a pytest.ini and try again.')
         raise SystemExit(1)
     with open(template_paths['pytest.ini']['dest'], 'w') as current:
