@@ -1,4 +1,4 @@
-__version__ = '0.0.5'
+__version__ = '0.0.6'
 
 import ConfigParser
 import os
@@ -34,8 +34,7 @@ def add_project_to_pytest_path():
 
     # Check if project is installed
     cmd = 'pip install --no-install --no-download %s > /dev/null'
-    return_value = subprocess.call(cmd % project_name, shell=True)
-    if return_value != 0:  # already installed
+    if subprocess.call(cmd % project_name, shell=True):  # already installed
         pretty.print_warning('Adding project to pytest-django path...',
                               new_line=False)
         subprocess.call('pip install -e . > /dev/null', shell=True)
@@ -47,8 +46,9 @@ def add_project_to_pytest_path():
     # Add project.egg to gitignore
     if not os.path.exists('.gitignore'):
         subprocess.call('touch .gitignore', shell=True)
-    cmd = '(cat .gitignore | grep .egg && echo "*.egg*" >> .gitignore) > /dev/null'
-    subprocess.call(cmd, shell=True)
+    cmd = 'cat .gitignore | grep *.egg-info > /dev/null'
+    if subprocess.call(cmd, shell=True):  # not in .gitignore
+        subprocess.call('echo "*.egg-info" >> .gitignore > /dev/null', shell=True)
 
     success_message = 'You can now run your tests with py.test'
     pretty.print_success(pretty.CHECK_MARK, success_message)
