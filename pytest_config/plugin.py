@@ -90,6 +90,13 @@ def check_config_files_versions():
 ###############################################################################
 @pytest.mark.tryfirst
 def pytest_load_initial_conftests(early_config, parser, args):
+    # pytest-django expects the settings module variable to be uppercase
+    # but variables, by standard, should be lowercase.
+    # Enable usage of lowercase configuration variable for DJANGO_SETTINGS_MODULE
+    django_settings_module = early_config.getini(SETTINGS_MODULE_ENV)
+    if django_settings_module:
+        os.environ.setdefault(SETTINGS_MODULE_ENV.upper(), django_settings_module)
+
     from django.conf import settings
     try:
         settings.DATABASES
@@ -101,13 +108,6 @@ def pytest_load_initial_conftests(early_config, parser, args):
 
 
 def pytest_configure(config):
-    # pytest-django expects the settings module variable to be uppercase
-    # but variables, by standard, should be lowercase.
-    # Enable usage of lowercase configuration variable for DJANGO_SETTINGS_MODULE
-    django_settings_module = config.getini(SETTINGS_MODULE_ENV)
-    if django_settings_module:
-        os.environ[SETTINGS_MODULE_ENV.upper()] = django_settings_module
-
     if config.getvalue('use_caliendo'):
         # Add caliendo cache variables
         os.environ.setdefault('USE_CALIENDO', 'True')

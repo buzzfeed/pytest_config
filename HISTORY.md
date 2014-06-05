@@ -1,5 +1,10 @@
 # History
 
+### 0.0.6 (2014-06-05)
+
+* Fixed bug when detecting parsing DJANGO_SETTINGS_MODULE and checking
+availability of such.
+
 ### 0.0.5 (2014-05-30)
 
 * Added support for lowercase `django_settings_module` ini value in pytest.ini.
