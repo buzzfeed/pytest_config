@@ -1,5 +1,12 @@
 # History
 
+### 0.0.7 (2014-06-16)
+
+* Added `--runslow` option to run tests marked as slow tests.
+* Added `pytest-django` as package requirement since this is meant to be used
+within Django projects.
+* `pep8>=1.5.6` as package requirement as this version supports more PEP8 rules.
+
 ### 0.0.6 (2014-06-05)
 
 * Fixed bug when detecting parsing DJANGO_SETTINGS_MODULE and checking
