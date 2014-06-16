@@ -36,10 +36,12 @@ setup(
     include_package_data=True,
     install_requires=[
         'pytest>=2.3',
-        'pytest-cov==1.6',
-        'pytest-cache==1.0',
-        'pytest-pep8==1.0.6',
-        'pytest-random==0.2'
+        'pytest-django>=2.6.1',
+        'pytest-cov>=1.6',
+        'pytest-cache>=1.0',
+        'pep8>=1.5.6',
+        'pytest-pep8>=1.0.6',
+        'pytest-random>=0.2',
     ],
     zip_safe=False,
     classifiers=[

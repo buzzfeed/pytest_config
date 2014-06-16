@@ -47,6 +47,10 @@ def pytest_addoption(parser):
         '-I', '--ignore-warnings',
         action='store_true', dest='ignore_warnings', default=False,
         help='Ignore pytest_config warnings.')
+    general_group.addoption(
+        '--runslow',
+        action='store_true', default=False,
+        help='Run slow tests (tests marked with @pytest.mark.slow)')
 
     parser.addini(SETTINGS_MODULE_ENV,
                   'Django settings module to use by pytest-django.')
@@ -157,6 +161,11 @@ def no_requests(monkeypatch):
 
     if not socket.socket == fake_socket:
         monkeypatch.setattr("socket.socket", fake_socket)
+
+
+def pytest_runtest_setup(item):
+    if 'slow' in item.keywords and not item.config.getoption('--runslow'):
+        pytest.skip('Need --runslow option to run')
 
 
 def pytest_collection_modifyitems(items):
