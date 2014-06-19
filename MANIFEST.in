@@ -1,0 +1,5 @@
+include *.md
+include data/pytest.ini
+include data/coveragerc
+recursive-exclude tests *.*
+recursive-include pytest_config/_templates *.txt *.py
