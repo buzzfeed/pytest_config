@@ -1,5 +1,11 @@
 # History
 
+### 0.0.8 (2014-06-19)
+
+* Cleanup and organization for releasing to PyPI.
+* Added MANIFEST.in
+* Moved `pytest_config.django` Django app to just `pytest_config`.
+
 ### 0.0.7 (2014-06-16)
 
 * Added `--runslow` option to run tests marked as slow tests.

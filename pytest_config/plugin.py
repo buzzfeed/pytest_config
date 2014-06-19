@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
 import ConfigParser
 import inspect
 import os
@@ -165,7 +166,7 @@ def no_requests(monkeypatch):
 
 def pytest_runtest_setup(item):
     if 'slow' in item.keywords and not item.config.getoption('--runslow'):
-        pytest.skip('Need --runslow option to run')
+        pytest.skip('Needs --runslow option to run')
 
 
 def pytest_collection_modifyitems(items):

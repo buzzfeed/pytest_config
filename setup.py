@@ -1,32 +1,30 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
 import os
 import pytest_config
 
-try:
-    from setuptools import setup
-except ImportError:
-    from distutils.core import setup
+from setuptools import setup
 
-version = pytest_config.__version__
-readme = open('README.md').read()
-history = open('HISTORY.md').read()
+README = open(os.path.join(os.path.dirname(__file__), 'README.md')).read()
+HISTORY = open(os.path.join(os.path.dirname(__file__), 'HISTORY.md')).read()
 
 HOME = os.environ['HOME']
 
 setup(
-    name='pytest_config',
-    version=version,
-    description="""Base configurations and utilities for developing your Python project test suite.""",
-    long_description=readme + '\n\n' + history,
+    name='pytest-config',
+    version=pytest_config.__version__,
+    description="""
+    Base configurations and utilities for developing
+    your Python project test suite.
+    """,
+    long_description=README + '\n\n' + HISTORY,
     author='Gerardo Orozco Mosqueda',
     author_email='gerard.mosqueda@buzzfeed.com',
     url='https://github.com/buzzfeed/pytest_config',
     packages=['pytest_config'],
     entry_points={'pytest11': ['config = pytest_config.plugin']},
     data_files=[
-        (HOME + '/.pytest_config/templates', ['data/coveragerc', 'data/pytest.ini']),
+        (os.path.join(HOME, '.pytest_config/templates'),
+         ['data/coveragerc', 'data/pytest.ini']),
     ],
     scripts=[
         'scripts/pytest_config.init',
@@ -45,7 +43,7 @@ setup(
     ],
     zip_safe=False,
     classifiers=[
-        'Development Status :: 4 - Beta',
+        'Development Status :: 5 - Production/Stable',
         'Framework :: Django',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: BSD License',
