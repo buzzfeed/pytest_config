@@ -14,6 +14,7 @@ from . import (
     _get_template,
     pretty
 )
+from .fixtures import timezone, pytz, json, mock, model_mommy
 
 PROJECT_ROOT = os.getcwd()
 warnings.formatwarning = pretty.formatwarning  # overwrite default warning format
