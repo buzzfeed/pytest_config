@@ -1,5 +1,9 @@
 # History
 
+### 0.0.9 (2014-07-08)
+
+* Added some common-use fixtures.
+
 ### 0.0.8 (2014-06-19)
 
 * Cleanup and organization for releasing to PyPI.

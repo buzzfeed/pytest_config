@@ -8,26 +8,33 @@ def _error(e):
     logger.debug(pretty.colorize_text(error, color=pretty.YELLOW))
 
 
-@pytest.fixture
+@pytest.fixture(scope='module')
 def timezone():
+    """ A shortcut to the `django.utils.timezone` module. """
     from django.utils import timezone
     return timezone
 
 
-@pytest.fixture
+@pytest.fixture(scope='module')
 def pytz():
+    """ A shortcut to the `pytz` module. """
     import pytz
     return pytz
 
 
-@pytest.fixture
+@pytest.fixture(scope='module')
 def json():
+    """ A shortcut to the `json` module. """
     import json
     return json
 
 
-@pytest.fixture
+@pytest.fixture(scope='module')
 def mock():
+    """
+    A shortcut to the `mock` module. If mock is not installed,
+    an error will be logged and no module will be available.
+    """
     try:
         import mock
         return mock
@@ -35,10 +42,14 @@ def mock():
         _error(e)
 
 
-@pytest.fixture
+@pytest.fixture(scope='module')
 def model_mommy():
+    """
+    A shortcut to the `model_mommy.mommy` module. If model_mommy is not
+    installed, an error will be logged and no module will be available.
+    """
     try:
-        import model_mommy
-        return model_mommy.mommy
+        from model_mommy import mommy
+        return mommy
     except ImportError as e:
         _error(e)

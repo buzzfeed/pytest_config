@@ -16,6 +16,8 @@ from . import (
 )
 from .fixtures import timezone, pytz, json, mock, model_mommy
 
+(timezone, pytz, json, mock, model_mommy)
+
 PROJECT_ROOT = os.getcwd()
 warnings.formatwarning = pretty.formatwarning  # overwrite default warning format
 SETTINGS_MODULE_ENV = 'django_settings_module'
@@ -150,6 +152,10 @@ old_socket = socket.socket
 
 @pytest.fixture(autouse=True)
 def no_requests(monkeypatch):
+    """
+    An autoused fixture to warn developers when their tests are making
+    live HTTP requests, i.e. they were not patched properly.
+    """
     class fake_socket(old_socket):
         def connect(self, address):
             local_stack = [s for s in inspect.stack() if os.getcwd() in s[1]]
