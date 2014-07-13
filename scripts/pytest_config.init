@@ -2,11 +2,7 @@
 import argparse
 import ConfigParser
 import os
-from pytest_config import (
-    add_project_to_pytest_path,
-    update_confg_version,
-    pretty
-)
+from pytest_config import update_confg_version, pretty
 
 HOME = os.environ['HOME']
 TEMPLATES_REL_DIR = '.pytest_config/templates'
@@ -65,8 +61,6 @@ def main():
     else:  # install all files
         create_from_template('pytest.ini')
         create_from_template('.coveragerc')
-
-    add_project_to_pytest_path()
 
 
 if __name__ == '__main__':

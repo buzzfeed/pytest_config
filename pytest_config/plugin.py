@@ -27,7 +27,9 @@ SETTINGS_MODULE_ENV = 'django_settings_module'
 # Custom options to integrate with Caliendo
 ###############################################################################
 def pytest_addoption(parser):
-    caliendo_group = parser.getgroup('Caliendo', 'Caliendo specific configs')
+    # Configurations for Caliendo
+    # ---------------------------
+    caliendo_group = parser.getgroup('caliendo', 'caliendo')
     caliendo_group.addoption(
         '--caliendo',
         action='store_true', dest='use_caliendo', default=False,
@@ -46,18 +48,22 @@ def pytest_addoption(parser):
         action='store_true', dest='caliendo_prompt', default=False,
         help='Set CALIENDO_PROMPT=True to enable the caliendo prompt')
 
+    # Plug-in specific options
+    # ----------------------
     general_group = parser.getgroup('general')
     general_group.addoption(
         '-I', '--ignore-warnings',
         action='store_true', dest='ignore_warnings', default=False,
         help='Ignore pytest_config warnings.')
+    general_group = parser.getgroup('general')
     general_group.addoption(
         '--runslow',
         action='store_true', default=False,
         help='Run slow tests (tests marked with @pytest.mark.slow)')
 
-    parser.addini(SETTINGS_MODULE_ENV,
-                  'Django settings module to use by pytest-django.')
+    # Custom ini values
+    # ----------------------
+    parser.addini(SETTINGS_MODULE_ENV, 'Django settings module to use by pytest-django.')
 
 
 ###############################################################################
@@ -101,9 +107,14 @@ def pytest_load_initial_conftests(early_config, parser, args):
     # pytest-django expects the settings module variable to be uppercase
     # but variables, by standard, should be lowercase.
     # Enable usage of lowercase configuration variable for DJANGO_SETTINGS_MODULE
-    django_settings_module = early_config.getini(SETTINGS_MODULE_ENV)
-    if django_settings_module:
-        os.environ.setdefault(SETTINGS_MODULE_ENV.upper(), django_settings_module)
+    # If this value is missing, verbosely suggest the way to fix it.
+    early_options = parser.parse_known_args(args)
+    settings_module = (early_options.ds or
+                       early_config.getini(SETTINGS_MODULE_ENV) or
+                       early_config.getini(SETTINGS_MODULE_ENV.upper()) or
+                       os.environ.get(SETTINGS_MODULE_ENV))
+    if settings_module:  # check if ini value was set
+        os.environ.setdefault(SETTINGS_MODULE_ENV.upper(), settings_module)
 
     from django.conf import settings
     try:
@@ -111,7 +122,9 @@ def pytest_load_initial_conftests(early_config, parser, args):
     except ImportError:
         e = sys.exc_info()[1]
         pretty.print_error(*e.args)
-        pretty.print_error('Perhaps all you need to do is run: pytest_config.update -p')
+        pretty.print_error('Perhaps you forgot to use the --ds option or '
+                           'set the DJANGO_SETTINGS_MODULE / '
+                           'django_settings_module INI value? (see py.test -h)')
         raise SystemExit(1)
 
 
@@ -171,16 +184,15 @@ def no_requests(monkeypatch):
         monkeypatch.setattr("socket.socket", fake_socket)
 
 
+###############################################################################
+# Hook customizations
+###############################################################################
 def pytest_runtest_setup(item):
     if 'slow' in item.keywords and not item.config.getoption('--runslow'):
         pytest.skip('Needs --runslow option to run')
 
 
 def pytest_collection_modifyitems(items):
-    apply_test_type_markers(items)
-
-
-def apply_test_type_markers(items):
     """
     Apply markers to tests based on what tests directory they are under.
     This assumes the root `tests` directory is organized in a per-app basis

@@ -4,8 +4,12 @@ import pytest_config
 
 from setuptools import setup
 
-README = open(os.path.join(os.path.dirname(__file__), 'README.md')).read()
-HISTORY = open(os.path.join(os.path.dirname(__file__), 'HISTORY.md')).read()
+
+def read(fname):
+    with open(fname) as fp:
+        content = fp.read()
+    return content
+
 
 HOME = os.environ['HOME']
 
@@ -14,9 +18,9 @@ setup(
     version=pytest_config.__version__,
     description="""
     Base configurations and utilities for developing
-    your Python project test suite.
+    your Python project test suite with pytest.
     """,
-    long_description=README + '\n\n' + HISTORY,
+    long_description=read('README.rst'),
     author='Gerardo Orozco Mosqueda',
     author_email='gerard.mosqueda@buzzfeed.com',
     url='https://github.com/buzzfeed/pytest_config',
@@ -40,6 +44,7 @@ setup(
         'pep8>=1.5.6',
         'pytest-pep8>=1.0.6',
         'pytest-random>=0.2',
+        'pytest-pythonpath==0.3'
     ],
     zip_safe=False,
     classifiers=[

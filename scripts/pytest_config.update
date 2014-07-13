@@ -4,7 +4,6 @@ import ConfigParser
 import os
 
 from pytest_config import (
-    add_project_to_pytest_path,
     update_confg_version,
     pretty
 )
@@ -145,10 +144,6 @@ def update_config_file_defaults(template):
         write_to_file(template, current_config)
 
 def main():
-    if args.fix_path:
-        add_project_to_pytest_path()
-        return
-
     # update only the requested file(s)
     if any([args.update_coveragerc, args.update_pytestini]):
         if args.update_pytestini:
